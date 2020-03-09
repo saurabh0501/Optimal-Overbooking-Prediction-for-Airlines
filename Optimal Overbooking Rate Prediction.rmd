@@ -1,0 +1,479 @@
+---
+title: 'IMT 573: Problem Set 5 - Bayes Theorem & Distributions'
+author: "Saurabh Sharma"
+date: 'Due: Tuesday, November 5, 2019'
+output: pdf_document
+---
+
+<!-- This syntax can be used to add comments that are ignored during knitting process. -->
+
+##### Collaborators: <!-- BE SURE TO LIST ALL COLLABORATORS HERE! -->
+
+##### Instructions:
+
+Before beginning this assignment, please ensure you have access to R and RStudio; this can be on your own personal computer or on the IMT 573 R Studio Server. 
+
+1. Download the `problemset4.rmd` file from Canvas or save a copy to your local directory on RStudio Server. Open `problemset4.rmd` in RStudio and supply your solutions to the assignment by editing `problemset4.rmd`. 
+
+2. Replace the "Insert Your Name Here" text in the `author:` field with your own full name. Any collaborators must be listed on the top of your assignment. 
+
+3. Be sure to include well-documented (e.g. commented) code chucks, figures, and clearly written text chunk explanations as necessary. Any figures should be clearly labeled and appropriately referenced within the text. Be sure that each visualization adds value to your written explanation; avoid redundancy -- you do no need four different visualizations of the same pattern.
+
+4.  Collaboration on problem sets is fun and useful, and we encourage it, but each student must turn in an individual write-up in their own words as well as code/work that is their own.  Regardless of whether you work with others, what you turn in must be your own work; this includes code and interpretation of results. The names of all collaborators must be listed on each assignment. Do not copy-and-paste from other students' responses or code.
+
+5. All materials and resources that you use (with the exception of lecture slides) must be appropriately referenced within your assignment.  
+
+6. Remember partial credit will be awarded for each question for which a serious attempt at finding an answer has been shown. Students are \emph{strongly} encouraged to attempt each question and to document their reasoning process even if they cannot find the correct answer. If you would like to include R code to show this process, but it does not run withouth errors you can do so with the `eval=FALSE` option.
+
+```{r example chunk with a bug, eval=FALSE, include=FALSE}
+a + b # these object dont' exist 
+# if you run this on its own it with give an error
+```
+
+7. When you have completed the assignment and have **checked** that your code both runs in the Console and knits correctly when you click `Knit PDF`, rename the knitted PDF file to `ps4_ourLastName_YourFirstName.pdf`, and submit the PDF file on Canvas.
+
+##### Setup
+
+Load any R packages of interest here.
+
+```{r Setup, message=FALSE, warning = FALSE}
+install.packages('modeest', repos = "http://cran.us.r-project.org")
+install.packages('genefilter', repos = "http://cran.us.r-project.org")
+
+library(tidyverse)
+library(gridExtra)
+library(dplyr)
+library(data.table)
+library('modeest')
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", repos = "http://cran.us.r-project.org")
+
+
+```
+
+**NOTE: You do not need to perform all calculations in R. Writing them in LaTeX and/or plain text is completely fine. However, be sure your work is readable and understandable. If you do solve problems programmatically, clearly describe your approach and what you are doing.**
+
+#### Problem 1: Overbooking Flights
+
+You are hired by Air Nowhere to recommend the optimal overbooking rate. It is a small airline that uses a 100-seat plane to carry you from Seattle to, well, nowhere. The tickets cost $100 each. The sales team has found that the probability, that the passengers who have paid their fare actually show up is 98%, and individuals showing up can be considered independent. The additional costs, associated with finding an alternative solutions for passengers who are refused boarding are \$500 per person.
+
+
+##### (a) Which distribution would you use to characterize the actual number of people who show up for flights?
+
+We will be using binomial distribution to characterize the actual number of people who show up for flights. The probabilitie defined here are as discrete events.
+In this problem of passengers showing up can be thought of as succeesses and the probability of passengers not showing up can be thought of as failures.
+so our P(S) = 0.98
+P(F) = .02
+Assuming that 100 people booked the flight in these case, we can think it as our number of trials.
+
+
+##### (b) Assume the airline never overbooks. What is the expected revenue from a full flight in this scenario? Expected revenue is the expected income from ticket sales minus expected costs related to alternative solutions.
+We have to calculate revenue in case of airline not overbooking. Here airline has only booked for 100 passengers. Hence
+Net Revenue = (Number of tickets sold x cost per ticket)
+
+ = $100*100 = 10000 
+
+##### (c) Now assume the airline sells 101 tickets for 100 seats on a given flight. What is the probability that all 101 passengers will show up?
+
+Since it is described in the question that "the probability, that the passengers who have paid their fare actually show up is 98%, and individuals showing up can be considered independent", so it basically means that it is valid for a single passenger too. That means that the probability of a single passenger who has paid for a ticket and showed up has a probability of 0.98. Also the indivisuals (probability) showing up are independent so the probability that all the 101 passengers show up is - 
+If X is the event that the passengers who bought the ticket actually show up, then:
+0.98*0.98*0.98..........0.98 (till 101 times) - as each of the 101 passengers is considered as a separate independent event and for independent events occuring together probability is found out by direct multiplication. 
+
+So Probablity P(X) = (0.98)^101 = 0.1299
+
+ or we can calculate:
+ 
+pbinom(100, 101 ,.98, lower.tail = FALSE) = 0.1299672
+
+##### (d) What are the expected profits (where profits are revenue - expected additional costs) when the airlines sells 101 tickets for 100 seats? Would you recommend overbooking or selling just the right number of tickets per flight?
+
+Considering three cases here for 102 tickets being sold, 101 tickets being sold and 100 or less than 100 tickets being sold 
+
+Case-1 101 tickets sold and 101 paying passengers show up. $10100- $500 = $9600
+Case-2 101 tickets sold and 100 or less paying passengers show up. 101*100 = 10100
+ 
+In case of selling the right number of tickets : 100 tickets sold and 100 or less paying passengers show up. = 100*100 =10000 
+
+Now, I would suggest overbooking, as in that case the probability of 101 passengers showing up is very less and profit tends to be 10100 in case of 101 passengers
+
+SUGGESTED- OVERBOOKING :As probability of 101 passengers showing is only around 13%
+
+##### (e) Now assume the airline sells 102 tickets for 100 seats on a given flight. What is the probability that all 102 passengers show up?
+
+Like in the case of 101 passengers showing up, we apply the same logic in this case where 102 passengers show up. So, we can take it as :
+So Probablity of all passengers showing up is = (0.98)^102 = 0.1273678
+
+Also, we can calculate it like this:
+P(X102) = nCk * pˆk * (1 - p)ˆ(n - k)
+where,
+P(X102) = (102 C 102) * (0.98 ˆ 102) * (0.02 ˆ 0)
+= 1 *0.1273 *1 = 0.1273
+
+##### (f) What is the probability that 101 passengers - still one too many - will show up when 102 tickets are sold for a given flight?
+
+Here we are given
+Probability of passenger showing up as  : 0.98
+
+Total number of trials as : 102
+
+NUmber of success as (x) : 101
+
+Applying binomial distribution formula
+
+Therefore, Binomial probability: 
+
+P(X = x) =  (102 C 101) * (0.98 ˆ 101) * (0.02 ˆ 1)
+= 102 *0.1299*0.02 = 0.2651
+
+
+##### (g) Would it be advisable to sell 102 tickets, 101 tickets, or 100 tickets for a given flight if the airline wanted to maximize revenue? (i.e. which has the highest expected revenue: selling 100, 101, or 102 tickets? 
+
+Considering six cases here - 
+
+Case 1 - 102 tickets sold and 102 paying passengers show up.
+```{r}
+Probability102_102 <- dbinom(102,102,0.98) 
+Probability102_102
+
+```
+Profit = (100*102) - (500*(102-100)) = 9,200
+
+Case 2 - 102 tickets sold and 101 paying passengers showing up.
+```{r}
+Probability102_101 <- dbinom(101,102,0.98) 
+Probability102_101
+```
+Profit = (100*102) - (500*(101-100)) = 9,700
+
+
+Case 3 - 102 tickets sold and 100 paying passengers showing  up.
+
+Probability of Case 3 = 1 - (Probability of Case 1 + Probability of Case 2) 
+
+Probability of Case 3 = 1-(0.1273678 + 0.265133) = 0.6074992
+
+Profit = 102*100 = 10,200
+
+Doing the weighted Average to calculate the estimated profit for all cases where 102 tickets are sold. 
+
+Estimated Profit_1 = (9200*0.1273678) + (0.265133*9700) + (0.6074992*10,200) = 9940.066
+
+Case 4 - 101 tickets sold and 101 paying passengers show up.
+```{r}
+Probability101_101 <- dbinom(101,101,0.98) 
+Probability101_101
+(9600*0.1299672)+(10100* 0.8700328)
+```
+Profit = (101*100) - (500*(101-100)) = 9600
+
+Case 5 - 101 tickets sold and 100 or less paying passengers showing up.
+
+Probability of Case 5 = 1 - (Probability of Case 4)
+
+Probability of Case 5 = 1- 0.1299672 = 0.8700328
+
+Profit = (101*100) = 101,00 
+
+Estimated Profit_2 = (9600*0.1299672)+(10100* 0.8700328) = 10035.02 
+
+Case 6 - 100 tickets sold and 100 or less paying passengers show up.
+
+Profit Earned = 10,000 as described in earlier parts. 
+
+Now since we can observe the maximum profit is obtained only when 101 tickets are sold out of possibilities of 102,101 and 100 tickets being booked. After 101 bookings revenue starts decreasing. 
+
+
+
+##### (h) What is the optimal number of seats to sell for the airline? How much are expected profits the expected profits in this case?
+
+We found out that 101 maximized the profit among 100 passengers being booked, 101 passengers being booked and 102 passengers being booked. With 102 passengers the profit decreased. We can further check it for 103 
+
+
+Case 1 - 103 tickets sold and 103 paying passengers show up.
+```{r}
+Probability103_103 <- dbinom(103,103,0.98) 
+Probability103_103
+
+```
+Profit = (100*103) - (500*(103-100)) = 8800
+
+Case 2 - 103 tickets sold and 102 paying passengers showing up.
+```{r}
+Probability103_102 <- dbinom(102,103,0.98) 
+Probability103_102
+```
+Profit = (100*103) - (500*(2)) = 9,300
+
+Case 3 - 103 tickets sold and 101 paying passengers showing up.
+
+```{r}
+Probability103_101 <- dbinom(101,103,0.98) 
+Probability103_101
+```
+Profit = (100*103) - (500*(1)) = 9,800
+
+
+Case 4 - 103 tickets sold and 100 or less paying passengers showing up.
+
+Probability of Case 3 = 1 - (Probability of Case 3+case 2 + case 1)
+
+Probability of Case 3 = 1- (0.1248205 + 0.2623777 + 0.273087) = 0.3397148
+
+Profit = (103*100) = 103,00
+
+Estimated profit= 8800*.1248 + 9300*.2623 + 9800*.273087 + .3397148*10300 = 9712.945
+
+So as we have seen that the pattern of decreasing revenue continues even after booking 103 passengers. 
+
+Hence we can conclude the optimum number of seats to book as 101.
+
+
+##### (i) What does it mean to state that individuals showing up for a flight are independent? Why is this important in this case?
+In this case we have taken the probability of passenger showing up as .98 and passenger not showing up as .02. If we havent assumed the passengers to be independent, than for passengers probability might have been conditional and we couldnt have used Probability of success as .98 for each individual. Also, to apply binomial theorem, this events are required to be independent.
+
+#### Problem 2: Asking Data Science Questions: Crime and Educational Attainment
+
+For a given exam, there is a multiple-choice question with four (mutually exclusive) options. On average, 80% of the students know the answer. Among those who know the answer, 10% answer incorrectly due to exam stress.
+
+##### (a) If a student gets the answer correct, what is the probability that they actually know the material?
+
+Be sure to describe and outline each step in your calculations.
+
+Probability of Knowing the answer P(K) = 0.8
+Probability of being incorrect given that the student know the answer, P(I|K)= 0.1*.8
+
+Thus Probability of giving correct answer given that you know the Answer is P(C|K) = .8-  P(I | K) = 0.72
+
+Probability of Not Knowing the answer P(NK) = 1- P(K)= 0.2
+
+Probability of giving correct given that you don't Know the answer = P(C|NK)= 0.25
+
+Probability of giving incorrect answer given that you don't Know the answer = P(I | NK)= 0.75
+
+P(C)= P(C|NK) * P(NK) + P(C|K)* P(K) = 0.25*0.2 + 0.9*0.8 = 0.77
+
+#P(K|C)= P(C|K) * P(K) / P(C)
+ 
+final probability = 0.72*.8/ 0.77
+
+
+#### Problem 3: Histograms and distributions
+
+In this problem, you will be examining human height and citation counts for research papers (separately).
+
+##### (a) What kind of measure is human height (nominal, ordinal, interval, ratio)? How should it it be measured (continuous, discrete; positive, negative, either)?
+Human height is a kind of ratio measurement. It is because we can have an option of zero in the height (numerically not practically) and there is a set of specific values between the options. Also, we can depict someone's height as twice as some other person's height, which makes it a ratio measure.
+
+Human height should be measured as a continouos value as we can measure it more precision using decimals upto infinitisimal decimals.
+
+
+##### (b) Read in the "fatherson.csv" data. The data consists of two columns: father's height and son's height (both in cm). Let's focus on fathers' heights (\textit{fheight}). How many observations are there? Are there any missing values?
+
+
+```{r heightsdata}
+heightsdataset <- read.csv("fatherson.csv.bz2", 
+                         stringsAsFactors=FALSE)
+
+str(heightsdataset)
+
+summary(heightsdataset)
+dim(heightsdataset)
+heights_table <- separate(heightsdataset, fheight.sheight, c("fathers_h", "son_h"), sep = "\\b\\s\\b", remove = TRUE)
+
+str(heights_table)
+
+heights_table <- heights_table %>% mutate_if(is.character, as.numeric)
+
+```
+Total number of observations are 1078.
+
+There are no missing values as per the summary function. There are 1078 observations.
+
+
+##### (c) Compute the mean, median, standard deviation, and range of the heights. Discuss the relationship between these numbers. Is the mean larger than the median? What does this suggest? Would calculating the mode give a useful descriptive statistic? Why or why not? How does standard deviation compare to mean?
+
+
+
+
+```{r heightssummary}
+summary(heights_table)
+
+mode_fh <- mlv(heights_table$fathers_h, method = "mfv",na.rm = FALSE)
+mode_fh
+#Its the mode of father's heights
+
+mode_sh <- mlv(heights_table$son_h, method = "mfv",na.rm = FALSE)
+mode_sh
+#Its the mode of son's heights
+
+fh_sd = summarise(heights_table, fh_sd = sd(heights_table$fathers_h))
+#This give the standard deviation of father's heights
+fh_sd
+
+
+fh_variance = fh_sd*fh_sd
+#This gives the variance of father's heights
+fh_variance
+```
+\begin{enumerate}
+
+Median = 172.1
+
+Mean = 171.9
+
+Standard Deviation = 6.972346	
+
+Range of the heights = Max - Min = 191.6 - 149.9 = 41.7
+
+No, the mean is not larger than the median
+
+As mean is smaller than the median, the distribution is left skewed.
+Mode is not useful in our case as heights in this data are on a continuous scale and we will get single digit counts for many of the heights which will be insignificant in our case.
+
+Here standard deviation is 6.972346 and mean in 171.9. It suggests that the chances of height being in the interval of mean_6.972 and mean- 6.972 is high. Standard deviation vs Mean: Mean is the central value of a discrete set of numbers: specifically, the sum of the values divided by the number of values while standard deviation is the measure of amount of variation or dispersion of a set of values. A low standard deviation indicates that the values tend to be close to the mean (also called the expected value) of the set, while a high standard deviation indicates that the values are spread out over a wider range.
+
+
+##### (d) Plot a histogram of the data. On the same plot, overlay a plot of the normal distribution with the same mean and standard deviation as the data. Additionally, indicate the mean and median of the data using vertical lines of different colors. What do you find? Are the histogram and the density plot similar?
+
+```{r plotfatherheights}
+fatherheights_hg <-ggplot(heights_table, aes(x=fathers_h)) + geom_histogram(binwidth=2, colour="black", aes(y=..density.., fill=..count..)) +
+  geom_vline(data=heights_table, aes(xintercept = mean(heights_table$fathers_h),color = "mean")) +
+geom_vline(data=heights_table, aes(xintercept = median(heights_table$fathers_h), color ="median")) +
+  geom_vline(data=heights_table, aes(xintercept = mode_fh,color = "mode_fatherheights")) + scale_color_manual(name = "statistics", values = c(median = "yellow", mean = "green", mode_fatherheights = "orange"))
+
+
+fatherheights_hg
+```
+
+Let us try to add a normal curve of data having mean = 171.9, and standard deviation= 6.97
+```{r normalcurve}
+normal_hg <- fatherheights_hg+ stat_function(fun=dnorm,
+                         color="red",
+                         args=list(mean=mean(heights_table$fathers_h), 
+                                  sd=sd(heights_table$fathers_h))) 
+  
+#We have added a normal plot with the mean and standard deviation as found from the father's heights column
+normal_hg
+```
+
+Yes, the histogram and the density plot are similar for most of the part.
+
+##### (e) What kind of measure is the citation counts for research papers (i.e. the number of times that a paper is referenced by other papers)? How should it be measured?
+
+The citation counts for research papers are interval measures.Ratio measure would not have been appropriate in this case. We can count it as a paper being cited n number of times more or less than an another paper. The citation count should be measured as discrete measures.
+
+##### (f) Read in the "mag-in-citations.csv" data. This is Microsoft Academic's Graph for citations of research papers and it contains two columns: paper id and the number of citations. We will only look at the number of citations. How many observations are there? Are there any missing values?
+
+```{r }
+citations1 <- read.csv("mag-in-citations.csv.bz2")
+
+citations_df <- as.data.frame(citations1)
+
+str(citations_df)
+dim(citations_df)
+
+glimpse(citations_df)
+#Number of observations
+```
+
+
+##### (g) Compute the mean, median, standard deviation, and range of the citations. Discuss the relationship between these numbers. Is the mean larger than the median? What does this suggest? Would calculating the mode give a useful descriptive statistic? Why or why not? How does standard deviation compare to mean?
+
+```{r }
+
+summary(citations_df)
+
+mode_citations_df <- mlv(citations_df$citations, method = "mfv",na.rm = FALSE)
+mode_citations_df
+#This tells the mode of citations
+
+citations_df_sd = summarise(citations_df,citations_sd = sd(citations_df$citations))
+citations_df_sd
+```
+
+Mean citations = 15.61
+
+Median citations =  3.00
+
+Standard deviation = 78.39079
+
+Range = Max -Min = 18682 - 0 = 18682
+
+Mean is 5 times the median. It suggests that the distribution will be rightly skewed. Also, the standard deviation is quite high in this case, that suggests that there are some papers which have been cited a huge number of times.
+
+Mode is not useful in this case because we are already presented with the count of citation of each paper. Hence if we need to calculate some descriptive variable, mean would be more beneficial than the mode.
+
+
+##### (h) Calculate the 90th percentile for the citation data. How does this compare to the maximum value of the citation data? Calcualte the 10th percentile for the citation data. How does this compare to the minimum value of the citation data? What does this all suggest with respect to the shape of the distribution of citation counts?
+
+```{r }
+
+citation_col <- citations_df$citations
+
+#90th percentile
+quantile(citation_col, c(.9))
+
+#10th percentile
+quantile(citation_col, c(.1))
+```
+
+90th percentile = 34
+
+10th percentile = 0
+
+In this case 90th percentile is very small in comparison to the maximum value. The 10th percentile is exactly equal to the minimum value. This suggests that the curve will be hihly right skewed.
+
+
+##### (i) Plot a histogram of the data. On the same plot, overlay a plot of the normal distribution with the same mean and standard deviation as the data. Additionally, indicate the mean and median of the data using vertical lines of different colors. What do you find? Are the histogram and the density plot similar? Now try this with what is called a "log-log" transformation (i.e. plotting the x and y axes on a logarithmic scale)
+
+```{r warning = FALSE}
+
+
+citationhistogram <- ggplot(citations_df, aes(x = citations)) + geom_histogram(binwidth = 2, color = 'black', aes(y=..density.., fill=..count..)) +
+  xlim(-30, 150) + ylim (0, 0.08) +
+  geom_vline(data=citations_df, aes(xintercept = mean(citations_df$citations),color = "mean")) +
+geom_vline(data=citations_df, aes(xintercept = median(citations_df$citations), color ="median")) +
+  geom_vline(data=citations_df, aes(xintercept =mode_citations_df ,color = "mode_citations_df")) + scale_color_manual(name = "statistics", values = c(median = "yellow", mean = "green", mode_citations_df = "orange"))
+               
+citationhistogram
+```
+
+
+```{r normalplot_citation,  warning = FALSE}
+
+
+normalplot_citation <- citationhistogram+ stat_function(fun=dnorm,
+                         color="red",
+                         args=list(mean=mean(citations_df$citations),
+                                  sd=sd(citations_df$citations))) 
+  
+#We have added a normal plot with the mean and standard deviation as found from the citations column
+normalplot_citation
+```
+
+```{r  warning = FALSE}
+
+ggplot(data = citations_df) + aes(x = citations_df$citations) +
+geom_histogram(aes(y = ..density..),bins = 20,fill = 'green') +
+theme_bw() + geom_vline(aes(xintercept= mean(citations_df$citations)),
+color = 'firebrick1',linetype = 'dashed',size = 1) +
+geom_vline(aes(xintercept= median(citations_df$citations)),color = 'blue',
+linetype = 'dashed',size = 1) +
+stat_function(fun = dnorm, n = 1000,
+args = list(mean = mean(citations_df$citations), sd = sd(citations_df$citations))) +
+scale_y_continuous(breaks = NULL) +
+labs(y = "Counts",x = "Number of times a paper was cited",
+title = "Distribution of the number of time a paper was cited") + scale_x_continuous(trans='log10')
+
+```
+
+
+The use of log transformations has helped us see the values more appropriately along the x-axis.
+
+##### (j) Seeing how well (or not well) that the heights and the citations datasets align with the normal distribution, what are your thoughts on these datasets and do the findings make sense with respect to what we'd expect to see concerning heights and influence (as measured by citations)?
+
+The observations of height dataset are independent observations of fathers and sons. When we plot them, we plot the individual heights of father and sons and so they ought to be independent.
+
+However, for our citations dataset, we are given frequencies and we are looking at thedistribution of our frequencies and not the actual observations, and hence it is not a normal distribution.
+
